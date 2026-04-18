@@ -9,6 +9,8 @@ ENV/
 # Build and Distribution
 build/
 dist/
+!release/
+!release/Dhurandhar.exe
 *.spec
 *.exe
 

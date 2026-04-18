@@ -1,5 +1,5 @@
 {
   "version": "1.0.0",
-  "download_url": "https://github.com/GaganNaagu/Honey-MiniGame-Solver/releases/latest/download/Dhurandhar.exe",
-  "changelog": "Initial release with auto-updater."
+  "download_url": "https://github.com/GaganNaagu/Honey-MiniGame-Solver/raw/master/release/Dhurandhar.exe",
+  "changelog": "Initial release with fully automatic update system."
 }

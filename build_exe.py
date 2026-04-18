@@ -37,23 +37,29 @@ def build():
     
     print("\n" + "="*40)
     print(f"BUILD COMPLETE (v{version})!")
-    print("Your executable is in the 'dist' folder.")
-    print("\nNEXT STEPS FOR PUBLISHING:")
-    print(f"1. Ensure 'version' in 'version.json' is higher than current.")
-    print(f"2. Upload 'dist/Dhurandhar.exe' to GitHub Releases.")
-    print(f"3. Commit and push 'version.json' to GitHub.")
-    print("="*40)
     
-    push = input("\nWould you like to commit and push current changes to GitHub? (y/n): ").lower()
+    # 1. Copy to release folder
+    os.makedirs("release", exist_ok=True)
+    import shutil
+    shutil.copy2("dist/Dhurandhar.exe", "release/Dhurandhar.exe")
+    print("Updated 'release/Dhurandhar.exe'")
+    
+    # 2. Update version.json locally
+    print(f"Publishing v{version}...")
+    
+    push = input("\nReady to PUSH update to all clients? (y/n): ").lower()
     if push == 'y':
-        msg = input("Commit message [Update]: ") or "Update"
         try:
             subprocess.check_call(["git", "add", "."])
-            subprocess.check_call(["git", "commit", "-m", msg])
+            subprocess.check_call(["git", "commit", "-m", f"Release v{version}"])
             subprocess.check_call(["git", "push"])
-            print("Successfully pushed to GitHub!")
+            print("\n" + "*"*40)
+            print("SUCCESS: Update is now LIVE for all users!")
+            print("*"*40)
         except Exception as e:
             print(f"Git push failed: {e}")
+    else:
+        print("Push cancelled. Update not live.")
 
 if __name__ == "__main__":
     build()
