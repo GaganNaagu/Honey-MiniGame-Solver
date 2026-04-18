@@ -12,7 +12,7 @@ import json
 import keyboard
 import threading
 import logging
-from core.utils import get_config_dir, get_assets_dir
+from core.utils import get_config_dir, get_assets_dir, ensure_project_dirs
 from core.updater import start_update_check, VERSION
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +59,9 @@ def main():
     # Add more debug if requested, or by default just INFO
     debug = "--debug" in args
     setup_logging(debug)
+    
+    # Ensure folders and default config exist before starting
+    ensure_project_dirs()
     
     # Check for updates in the background
     start_update_check()

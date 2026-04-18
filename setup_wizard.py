@@ -19,7 +19,7 @@ import numpy as np
 import cv2
 import logging
 
-from core.utils import get_config_dir, get_assets_dir
+from core.utils import get_config_dir, get_assets_dir, ensure_project_dirs, get_default_config
 
 logger = logging.getLogger("dhurandhar.setup")
 
@@ -30,8 +30,7 @@ TEMPLATE_DIR = os.path.join(get_assets_dir(), "templates")
 
 
 def ensure_dirs():
-    os.makedirs(CONFIG_DIR, exist_ok=True)
-    os.makedirs(TEMPLATE_DIR, exist_ok=True)
+    ensure_project_dirs()
 
 
 def load_config():
@@ -63,43 +62,6 @@ def save_config(config):
     logger.info(f"Config saved to {CONFIG_PATH}")
 
 
-def get_default_config():
-    return {
-        "honey_game": {
-            "name": "Honey Scrape",
-            "start_key": "e",
-            "start_click": [960, 540],
-            "hold_position": [960, 540],
-            "hold_duration_ms": 1000,
-            "scrape_region": [400, 300, 400, 300],
-            "honey_texture_region": [400, 300, 100, 100],
-            "scraper_reset_region": [400, 300, 100, 100],
-            "drag_target": [1200, 540],
-            "counter_region": [0, 0, 200, 50],
-            "ui_region": [0, 0, 1920, 1080],
-            "target_count": 10,
-            "templates": {
-                "ui_active": "",
-                "clean": "",
-                "scraper_reset": ""
-            }
-        },
-        "jar_game": {
-            "name": "Fill into Jar",
-            "start_key": "e",
-            "click_pos": [960, 540],
-            "click_count": 4,
-            "circle_center": [960, 540],
-            "circle_radius": 100,
-            "circle_speed_ms": 500,
-            "final_check_region": [400, 300, 100, 100],
-            "ui_region": [0, 0, 1920, 1080],
-            "templates": {
-                "ui_active": "",
-                "final_check": ""
-            }
-        }
-    }
 
 
 class VisualSelector:
