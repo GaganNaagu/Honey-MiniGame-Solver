@@ -51,13 +51,18 @@ def build():
     if push == 'y':
         try:
             subprocess.check_call(["git", "add", "."])
-            subprocess.check_call(["git", "commit", "-m", f"Release v{version}"])
-            subprocess.check_call(["git", "push"])
-            print("\n" + "*"*40)
-            print("SUCCESS: Update is now LIVE for all users!")
-            print("*"*40)
+            # Check if there are actually changes to commit
+            status = subprocess.run(["git", "diff", "--cached", "--quiet"])
+            if status.returncode != 0:
+                subprocess.check_call(["git", "commit", "-m", f"Release v{version}"])
+                subprocess.check_call(["git", "push"])
+                print("\n" + "*"*40)
+                print("SUCCESS: Update is now LIVE for all users!")
+                print("*"*40)
+            else:
+                print("\nNo changes detected in version.json or code. Push skipped.")
         except Exception as e:
-            print(f"Git push failed: {e}")
+            print(f"Git operation failed: {e}")
     else:
         print("Push cancelled. Update not live.")
 
