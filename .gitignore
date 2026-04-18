@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Build and Distribution
+build/
+dist/
+*.spec
+*.exe
+
+# IDEs
+.vscode/
+.idea/
+
+# Project specific
+.planning/
+config/config.json
+assets/templates/
+logs/
+*.log
