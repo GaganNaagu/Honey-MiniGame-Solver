@@ -20,11 +20,12 @@ class TextHandler(logging.Handler):
         self.text_widget.after(0, append)
 
 class MainGUI:
-    def __init__(self, controller, on_start_callback, on_stop_callback, on_setup_callback):
+    def __init__(self, controller, on_start_callback, on_stop_callback, on_setup_callback, version="1.0.0"):
         self.controller = controller
         self.on_start_callback = on_start_callback
         self.on_stop_callback = on_stop_callback
         self.on_setup_callback = on_setup_callback
+        self.version = version
         
         self.root = tk.Tk()
         self.root.title("Dhurandhar Automation Hub")
@@ -66,6 +67,7 @@ class MainGUI:
         header = tk.Frame(self.root, bg='#0d1117', pady=20)
         header.pack(fill='x')
         tk.Label(header, text="DHURANDHAR", font=("Segoe UI", 28, "bold"), fg='#58a6ff', bg='#0d1117').pack()
+        tk.Label(header, text=f"v{self.version}", font=("Consolas", 9, "bold"), fg='#3fb950', bg='#0d1117').pack()
         tk.Label(header, text="High-Performance Vision Automation", font=("Segoe UI", 10), fg='#8b949e', bg='#0d1117').pack()
 
         # --- Main Tabs ---

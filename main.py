@@ -111,7 +111,8 @@ def main():
             controller, 
             on_start_callback=start_macro, 
             on_stop_callback=stop_macro,
-            on_setup_callback=open_setup
+            on_setup_callback=open_setup,
+            version=VERSION
         )
 
         def toggle():
