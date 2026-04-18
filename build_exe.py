@@ -1,9 +1,18 @@
 import os
 import subprocess
 import sys
+import json
+
+def get_version():
+    try:
+        with open("version.json", "r") as f:
+            return json.load(f).get("version", "unknown")
+    except:
+        return "1.0.0"
 
 def build():
-    print("Starting build process for Dhurandhar...")
+    version = get_version()
+    print(f"Starting build process for Dhurandhar v{version}...")
     
     # Ensure pyinstaller is installed
     try:
@@ -13,11 +22,6 @@ def build():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # Build command
-    # --onefile: single exe
-    # --noconsole: no terminal window (since we have a GUI)
-    # --add-data: include assets (we'll keep them external for now to allow editing, 
-    # but we need to ensure the exe knows where to look)
-    
     cmd = [
         sys.executable,
         "-m", "PyInstaller",
@@ -32,11 +36,24 @@ def build():
     subprocess.check_call(cmd)
     
     print("\n" + "="*40)
-    print("BUILD COMPLETE!")
+    print(f"BUILD COMPLETE (v{version})!")
     print("Your executable is in the 'dist' folder.")
-    print("IMPORTANT: Make sure to copy 'assets' and 'config' folders ")
-    print("to the same location as Dhurandhar.exe if they aren't bundled.")
+    print("\nNEXT STEPS FOR PUBLISHING:")
+    print(f"1. Ensure 'version' in 'version.json' is higher than current.")
+    print(f"2. Upload 'dist/Dhurandhar.exe' to GitHub Releases.")
+    print(f"3. Commit and push 'version.json' to GitHub.")
     print("="*40)
+    
+    push = input("\nWould you like to commit and push current changes to GitHub? (y/n): ").lower()
+    if push == 'y':
+        msg = input("Commit message [Update]: ") or "Update"
+        try:
+            subprocess.check_call(["git", "add", "."])
+            subprocess.check_call(["git", "commit", "-m", msg])
+            subprocess.check_call(["git", "push"])
+            print("Successfully pushed to GitHub!")
+        except Exception as e:
+            print(f"Git push failed: {e}")
 
 if __name__ == "__main__":
     build()

@@ -13,6 +13,7 @@ import keyboard
 import threading
 import logging
 from core.utils import get_config_dir, get_assets_dir
+from core.updater import start_update_check, VERSION
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -58,6 +59,9 @@ def main():
     # Add more debug if requested, or by default just INFO
     debug = "--debug" in args
     setup_logging(debug)
+    
+    # Check for updates in the background
+    start_update_check()
 
     if "--setup" in args:
         from setup_wizard import LandingPage
@@ -118,7 +122,7 @@ def main():
 
         keyboard.add_hotkey('f6', toggle, suppress=False)
         
-        logger.info("Dhurandhar GUI Started.")
+        logger.info(f"Dhurandhar GUI Started (v{VERSION}).")
         logger.info("Select a minigame and press START or F6.")
         gui.run()
         return
