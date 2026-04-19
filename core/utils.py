@@ -88,15 +88,39 @@ def get_default_config():
     }
 
 def ensure_project_dirs():
-    """Ensures config and assets/templates directories exist. Creates default config if missing."""
+    """Ensures config and assets/templates directories exist. Creates default config and copies assets if missing."""
     config_dir = get_config_dir()
-    template_dir = os.path.join(get_assets_dir(), "templates")
+    assets_dir = get_assets_dir()
+    template_dir = os.path.join(assets_dir, "templates")
     
     os.makedirs(config_dir, exist_ok=True)
     os.makedirs(template_dir, exist_ok=True)
     
+    # 1. Handle Config
     config_path = os.path.join(config_dir, "config.json")
     if not os.path.exists(config_path):
         logger.info(f"Config file missing. Creating default at {config_path}")
         with open(config_path, 'w') as f:
             json.dump(get_default_config(), f, indent=2)
+
+    # 2. Handle Assets (Copy from bundle if running from EXE)
+    if getattr(sys, 'frozen', False):
+        import shutil
+        base_path = sys._MEIPASS
+        bundled_assets = os.path.join(base_path, "assets")
+        
+        if os.path.exists(bundled_assets):
+            logger.info("Checking for bundled assets to extract...")
+            for root, dirs, files in os.walk(bundled_assets):
+                for file in files:
+                    # Determine target path
+                    rel_path = os.path.relpath(os.path.join(root, file), bundled_assets)
+                    target_path = os.path.join(assets_dir, rel_path)
+                    
+                    # Create directory if missing
+                    os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                    
+                    # Copy if not exists
+                    if not os.path.exists(target_path):
+                        logger.info(f"Extracting bundled asset: {rel_path}")
+                        shutil.copy2(os.path.join(root, file), target_path)

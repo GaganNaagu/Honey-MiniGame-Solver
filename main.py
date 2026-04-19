@@ -14,6 +14,7 @@ import threading
 import logging
 from core.utils import get_config_dir, get_assets_dir, ensure_project_dirs
 from core.updater import start_update_check, VERSION
+from core.license import check_license
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -109,6 +110,9 @@ def main():
             from setup_wizard import LandingPage
             # Reuse the existing root and provide a way to get back
             LandingPage(root=gui.root, on_exit_callback=gui._build_ui)
+
+        # Before running the main loop, check license
+        check_license(gui.root)
 
         gui = MainGUI(
             controller, 

@@ -22,12 +22,15 @@ def build():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # Build command
+    # We bundle 'assets' so they can be extracted if missing locally
+    sep = ";" if os.name == 'nt' else ":"
     cmd = [
         sys.executable,
         "-m", "PyInstaller",
         "--onefile",
         "--noconsole",
         "--name", "Dhurandhar",
+        "--add-data", f"assets{sep}assets",
         "--icon", "NONE",
         "main.py"
     ]
