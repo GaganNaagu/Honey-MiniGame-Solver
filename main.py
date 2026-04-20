@@ -12,6 +12,7 @@ import json
 import keyboard
 import threading
 import logging
+import tkinter as tk
 from core.utils import get_config_dir, get_assets_dir, ensure_project_dirs
 from core.updater import start_update_check, VERSION
 from core.license import check_license
