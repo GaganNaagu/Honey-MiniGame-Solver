@@ -112,7 +112,7 @@ def main():
             LandingPage(root=gui.root, on_exit_callback=gui._build_ui)
 
         # Before running the main loop, check license
-        check_license(gui.root)
+        check_license(None)
 
         gui = MainGUI(
             controller, 
