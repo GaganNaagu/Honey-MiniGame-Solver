@@ -95,15 +95,19 @@ def main():
     # --- GUI VERSION ---
     if "--cli" not in args:
         from app_gui import MainGUI
+        from core.updater import check_for_updates
         
+        # Check for updates FIRST. If it finds one, it will restart and this process ends.
+        if check_for_updates():
+            return
+
         # 1. Create the single root window for the entire app life
         root = tk.Tk()
         root.withdraw() # Hide it while checking license
         
         # 2. Check License using this root
         check_license(root)
-        
-        # 3. Setup the controller and GUI
+
         def start_macro():
             controller.start(
                 on_status=lambda text: gui.update_status(text),
