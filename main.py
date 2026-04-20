@@ -64,9 +64,6 @@ def main():
     
     # Ensure folders and default config exist before starting
     ensure_project_dirs()
-    
-    # Check for updates in the background
-    start_update_check()
 
     if "--setup" in args:
         from setup_wizard import LandingPage
@@ -103,7 +100,10 @@ def main():
         # 2. Check License using this root
         check_license(root)
         
-        # 3. Setup the controller and GUI
+        # 3. Check for updates in the background (Thread-safe)
+        start_update_check(root)
+        
+        # 4. Setup the controller and GUI
         def start_macro():
             controller.start(
                 on_status=lambda text: gui.update_status(text),

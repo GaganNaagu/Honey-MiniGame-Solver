@@ -18,21 +18,22 @@ GITHUB_USER = "GaganNaagu"
 GITHUB_REPO = "Honey-MiniGame-Solver"
 UPDATE_URL = f"https://raw.githubusercontent.com/{GITHUB_USER}/{GITHUB_REPO}/master/version.json"
 
-def start_update_check():
+def start_update_check(root):
     """Run update check in a separate thread."""
-    thread = threading.Thread(target=check_for_updates, daemon=True)
+    thread = threading.Thread(target=check_for_updates, args=(root,), daemon=True)
     thread.start()
 
-def download_and_install(download_url):
+def download_and_install(download_url, root):
     """Downloads the new EXE with progress and triggers restart."""
     try:
-        progress_win = tk.Tk()
+        # Create Toplevel instead of Tk for the progress window
+        progress_win = tk.Toplevel(root)
         progress_win.title("Updating Dhurandhar...")
         progress_win.geometry("350x120")
         progress_win.configure(bg='#0d1117')
         progress_win.attributes("-topmost", True)
         
-        # Center progress window
+        # ... rest of the centering logic
         progress_win.update_idletasks()
         x = (progress_win.winfo_screenwidth() // 2) - 175
         y = (progress_win.winfo_screenheight() // 2) - 60
@@ -63,7 +64,7 @@ def download_and_install(download_url):
 
                 progress_win.destroy()
                 
-                if messagebox.askyesno("Update Ready", "Download complete! Restart now to apply update?"):
+                if messagebox.askyesno("Update Ready", "Download complete! Restart now to apply update?", parent=root):
                     batch_content = f"""@echo off
 title Dhurandhar Updater
 echo Waiting for application to close...
@@ -80,31 +81,36 @@ del "%~f0"
                     subprocess.Popen([batch_path], shell=True)
                     os._exit(0)
             except Exception as e:
-                messagebox.showerror("Error", f"Update failed: {e}")
+                messagebox.showerror("Error", f"Update failed: {e}", parent=root)
                 progress_win.destroy()
 
         progress_win.after(100, do_download)
-        progress_win.mainloop()
+
     except Exception as e:
         logger.error(f"UI Download failed: {e}")
 
-def check_for_updates():
-    """Checks for update and prompts user."""
+def check_for_updates(root):
+    """Checks for update and schedules UI on main thread."""
     if not getattr(sys, 'frozen', False):
         return # Skip in dev mode
 
     try:
-        response = requests.get(UPDATE_URL, timeout=10)
+        # Use cache-busting for version check too
+        bust_url = f"{UPDATE_URL}?t={int(time.time())}"
+        response = requests.get(bust_url, timeout=10)
+        
         if response.status_code == 200:
             data = response.json()
             remote_version = data.get("version")
             download_url = data.get("download_url")
 
             if remote_version and remote_version != VERSION:
-                root = tk.Tk()
-                root.withdraw()
-                if messagebox.askyesno("Update Available", f"A new version (v{remote_version}) is available!\n\nDo you want to update now?"):
-                    download_and_install(download_url)
-                root.destroy()
+                # Schedule the prompt on the main thread
+                root.after(0, lambda: show_update_prompt(root, remote_version, download_url))
     except Exception as e:
         logger.error(f"Update check failed: {e}")
+
+def show_update_prompt(root, version, url):
+    """Shows the update prompt on the main thread."""
+    if messagebox.askyesno("Update Available", f"A new version (v{version}) is available!\n\nDo you want to update now?", parent=root):
+        download_and_install(url, root)
