@@ -80,76 +80,137 @@ class FillJarHandler(BaseHandler):
         logger.info(">>> STEP 2: COMPLETE.")
         self.state = JarState.ROTATE
 
+    # def _do_rotate(self, vision, inp, cfg):
+    #     """Step 3: High-speed clockwise rotation until 5x indicator detected."""
+    #     center = cfg.get("circle_center", [960, 540])
+    #     radius = cfg.get("circle_radius", 100)
+    #     # Horizontal Scrape Width based on radius
+    #     width = radius * 2
+    #     start_x = center[0] - radius
+    #     end_x = center[0] + radius
+    #     y = center[1]
+    #     # Use an extremely fast default speed (20ms) for 20x speed
+    #     # If config is too slow (>100ms), we override it to be fast
+    #     cfg_speed = cfg.get("circle_speed_ms", 20)
+    #     speed_ms = cfg_speed if cfg_speed <= 100 else 20
+        
+    #     check_tpl = cfg.get("templates", {}).get("final_check")
+    #     check_reg = cfg.get("final_check_region", [0, 0, 1920, 1080])
+        
+    #     logger.info(f">>> STEP 3: STARTING TURBO SCRAPE ({speed_ms}ms/pass)")
+        
+    #     start_time = time.time()
+    #     last_log_time = 0
+    #     last_vision_time = 0
+        
+    #     # Initial move to start point
+    #     inp.mouse_down(int(start_x), int(y))
+        
+    #     match_found = False
+    #     while time.time() - start_time < self.MAX_ROTATE_TIMEOUT:
+    #         if self._is_aborted(): 
+    #             inp.mouse_up()
+    #             return
+
+    #         now = time.time()
+    #         elapsed_ms = (now - start_time) * 1000
+            
+    #         # Calculate horizontal position (Triangle wave for left-to-right-to-left)
+    #         # Cycle time is speed_ms for one full back-and-forth
+    #         cycle = (elapsed_ms / speed_ms) % 2
+    #         if cycle < 1:
+    #             # Left to Right
+    #             curr_x = start_x + (width * cycle)
+    #         else:
+    #             # Right to Left
+    #             curr_x = end_x - (width * (cycle - 1))
+            
+    #         # High-speed movement across the horizontal line
+    #         pyautogui.moveTo(int(curr_x), int(y))
+            
+    #         # Check vision every 10ms
+    #         if check_tpl and (elapsed_ms - last_vision_time) > 10:
+    #             last_vision_time = elapsed_ms
+    #             found, conf, _ = vision.region_matches_template(tuple(check_reg), check_tpl, threshold=0.35)
+                
+    #             if elapsed_ms - last_log_time > 200:
+    #                 logger.info(f">>> STEP 3: SCRAPING... (5x Match: {conf:.3f})")
+    #                 last_log_time = elapsed_ms
+
+    #             if found and elapsed_ms > 500:
+    #                 logger.info(f">>> STEP 3: 5x DETECTED! Conf: {conf:.3f}. Breaking.")
+    #                 match_found = True
+    #                 break
+            
+    #     inp.mouse_up()
+        
+    #     if match_found:
+    #         logger.info(">>> STEP 3: COMPLETE (Success).")
+    #         self.state = JarState.VERIFY
+    #     else:
+    #         logger.error(">>> STEP 3: TIMEOUT! Could not find ADDED 5X.")
+    #         # Safety reset if we didn't find the target
+    #         self.state = JarState.INIT
+
     def _do_rotate(self, vision, inp, cfg):
-        """Step 3: High-speed clockwise rotation until 5x indicator detected."""
+        """Step 3: High-speed clockwise rotation until UI closes."""
         center = cfg.get("circle_center", [960, 540])
         radius = cfg.get("circle_radius", 100)
-        # Horizontal Scrape Width based on radius
         width = radius * 2
         start_x = center[0] - radius
         end_x = center[0] + radius
         y = center[1]
-        # Use an extremely fast default speed (20ms) for 20x speed
-        # If config is too slow (>100ms), we override it to be fast
         cfg_speed = cfg.get("circle_speed_ms", 20)
         speed_ms = cfg_speed if cfg_speed <= 100 else 20
-        
-        check_tpl = cfg.get("templates", {}).get("final_check")
-        check_reg = cfg.get("final_check_region", [0, 0, 1920, 1080])
-        
+
+        ui_template = cfg.get("templates", {}).get("ui_active")   # <-- changed
+        ui_region = cfg.get("ui_region", [0, 0, 1920, 1080])      # <-- changed
+
         logger.info(f">>> STEP 3: STARTING TURBO SCRAPE ({speed_ms}ms/pass)")
-        
+
         start_time = time.time()
         last_log_time = 0
         last_vision_time = 0
-        
-        # Initial move to start point
+
         inp.mouse_down(int(start_x), int(y))
-        
+
         match_found = False
         while time.time() - start_time < self.MAX_ROTATE_TIMEOUT:
-            if self._is_aborted(): 
+            if self._is_aborted():
                 inp.mouse_up()
                 return
 
             now = time.time()
             elapsed_ms = (now - start_time) * 1000
-            
-            # Calculate horizontal position (Triangle wave for left-to-right-to-left)
-            # Cycle time is speed_ms for one full back-and-forth
+
             cycle = (elapsed_ms / speed_ms) % 2
             if cycle < 1:
-                # Left to Right
                 curr_x = start_x + (width * cycle)
             else:
-                # Right to Left
                 curr_x = end_x - (width * (cycle - 1))
-            
-            # High-speed movement across the horizontal line
+
             pyautogui.moveTo(int(curr_x), int(y))
-            
-            # Check vision every 10ms
-            if check_tpl and (elapsed_ms - last_vision_time) > 10:
+
+            if ui_template and (elapsed_ms - last_vision_time) > 10:
                 last_vision_time = elapsed_ms
-                found, conf, _ = vision.region_matches_template(tuple(check_reg), check_tpl, threshold=0.35)
-                
+                found, conf, _ = vision.region_matches_template(tuple(ui_region), ui_template, threshold=0.35)
+
                 if elapsed_ms - last_log_time > 200:
-                    logger.info(f">>> STEP 3: SCRAPING... (5x Match: {conf:.3f})")
+                    logger.info(f">>> STEP 3: SCRAPING... (UI Still Open: {found})")  # <-- changed
                     last_log_time = elapsed_ms
 
-                if found and elapsed_ms > 500:
-                    logger.info(f">>> STEP 3: 5x DETECTED! Conf: {conf:.3f}. Breaking.")
+                if not found and elapsed_ms > 500:   # <-- changed: trigger when UI is GONE
+                    logger.info(f">>> STEP 3: UI CLOSED! Breaking.")
                     match_found = True
                     break
-            
+
         inp.mouse_up()
-        
+
         if match_found:
             logger.info(">>> STEP 3: COMPLETE (Success).")
             self.state = JarState.VERIFY
         else:
-            logger.error(">>> STEP 3: TIMEOUT! Could not find ADDED 5X.")
-            # Safety reset if we didn't find the target
+            logger.error(">>> STEP 3: TIMEOUT! UI never closed.")
             self.state = JarState.INIT
 
     def _do_verify(self, vision, cfg):
