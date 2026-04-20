@@ -95,8 +95,14 @@ def main():
     if "--cli" not in args:
         from app_gui import MainGUI
         
-        gui = None
-
+        # 1. Create the single root window for the entire app life
+        root = tk.Tk()
+        root.withdraw() # Hide it while checking license
+        
+        # 2. Check License using this root
+        check_license(root)
+        
+        # 3. Setup the controller and GUI
         def start_macro():
             controller.start(
                 on_status=lambda text: gui.update_status(text),
@@ -108,20 +114,19 @@ def main():
 
         def open_setup():
             from setup_wizard import LandingPage
-            # Reuse the existing root and provide a way to get back
-            LandingPage(root=gui.root, on_exit_callback=gui._build_ui)
-
-        # Before running the main loop, check license
-        check_license(None)
+            LandingPage(root=root, on_exit_callback=gui._build_ui)
 
         gui = MainGUI(
             controller, 
             on_start_callback=start_macro, 
             on_stop_callback=stop_macro,
             on_setup_callback=open_setup,
-            version=VERSION
+            version=VERSION,
+            root=root # Pass the existing root
         )
 
+        root.deiconify() # Show it now that GUI is ready
+        
         def toggle():
             if gui.is_running:
                 gui.stop_macro()
@@ -132,7 +137,7 @@ def main():
         
         logger.info(f"Dhurandhar GUI Started (v{VERSION}).")
         logger.info("Select a minigame and press START or F6.")
-        gui.run()
+        root.mainloop()
         return
 
     # --- CLI VERSION (Old behavior) ---

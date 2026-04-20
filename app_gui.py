@@ -20,14 +20,14 @@ class TextHandler(logging.Handler):
         self.text_widget.after(0, append)
 
 class MainGUI:
-    def __init__(self, controller, on_start_callback, on_stop_callback, on_setup_callback, version="1.0.0"):
+    def __init__(self, controller, on_start_callback, on_stop_callback, on_setup_callback, version="1.0.0", root=None):
         self.controller = controller
         self.on_start_callback = on_start_callback
         self.on_stop_callback = on_stop_callback
         self.on_setup_callback = on_setup_callback
         self.version = version
         
-        self.root = tk.Tk()
+        self.root = root if root else tk.Tk()
         self.root.title("Dhurandhar Automation Hub")
         self.root.geometry("800x600")
         self.root.configure(bg='#0d1117')
@@ -172,5 +172,3 @@ class MainGUI:
     def update_status(self, text):
         logging.info(f"STATUS: {text}")
 
-    def run(self):
-        self.root.mainloop()
