@@ -23,6 +23,7 @@ def build():
 
     # Build command
     # We bundle 'assets' and ensure all dependencies are collected
+    # We use --noupx because it often breaks Python 3.13 DLL loading
     sep = ";" if os.name == 'nt' else ":"
     cmd = [
         sys.executable,
@@ -30,10 +31,12 @@ def build():
         "--onefile",
         "--noconsole",
         "--clean",
+        "--noupx",
         "--name", "Dhurandhar",
         "--add-data", f"assets{sep}assets",
         "--collect-all", "requests",
         "--collect-all", "cv2",
+        "--collect-all", "numpy",
         "--icon", "NONE",
         "main.py"
     ]
