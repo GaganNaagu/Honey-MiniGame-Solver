@@ -6,6 +6,7 @@ import requests
 import subprocess
 import tkinter as tk
 from tkinter import messagebox, simpledialog
+from core.utils import get_config_dir
 
 logger = logging.getLogger("dhurandhar.license")
 
@@ -88,7 +89,7 @@ def check_license(gui_root=None):
     If no license is found locally, prompts user.
     """
     hwid = get_hwid()
-    config_dir = os.path.join(os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__)), "config")
+    config_dir = get_config_dir()
     license_file = os.path.join(config_dir, "license.txt")
 
     # 1. Load local license key
