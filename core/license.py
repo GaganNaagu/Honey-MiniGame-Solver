@@ -123,7 +123,12 @@ def check_license(gui_root=None):
         # 3. Verify against GitHub
         try:
             logger.info(f"Verifying license {key} for HWID {hwid}...")
-            response = requests.get(LICENSE_URL, timeout=10)
+            
+            # Add a timestamp to prevent caching
+            import time
+            bust_url = f"{LICENSE_URL}?t={int(time.time())}"
+            
+            response = requests.get(bust_url, timeout=10)
             if response.status_code != 200:
                 messagebox.showerror("Error", "Could not connect to license server.")
                 sys.exit(0)
