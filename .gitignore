@@ -9,10 +9,12 @@ ENV/
 # Build and Distribution
 build/
 dist/
-!release/
-!release/Dhurandhar.exe
 *.spec
 *.exe
+
+# Explicitly allow the release EXE
+!release/
+!release/Dhurandhar.exe
 
 # IDEs
 .vscode/

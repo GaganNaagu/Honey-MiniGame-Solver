@@ -67,11 +67,15 @@ def build():
     push = input("\nReady to PUSH update to all clients? (y/n): ").lower()
     if push == 'y':
         try:
-            subprocess.check_call(["git", "add", "."])
+            # Force add the EXE and add everything else
+            subprocess.check_call(["git", "add", "-f", "release/Dhurandhar.exe"])
+            subprocess.check_call(["git", "add", "version.json", "licenses.json"])
+            
             # Check if there are actually changes to commit
             status = subprocess.run(["git", "diff", "--cached", "--quiet"])
             if status.returncode != 0:
                 subprocess.check_call(["git", "commit", "-m", f"Release v{version}"])
+                print("Pushing to GitHub (this may take a minute for 70MB)...")
                 subprocess.check_call(["git", "push"])
                 print("\n" + "*"*40)
                 print("SUCCESS: Update is now LIVE for all users!")
