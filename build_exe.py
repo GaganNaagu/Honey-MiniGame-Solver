@@ -22,21 +22,15 @@ def build():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # Build command
-    # We bundle 'assets' and ensure all dependencies are collected
-    # We use --noupx because it often breaks Python 3.13 DLL loading
+    # We bundle 'assets' so they can be extracted if missing locally
     sep = ";" if os.name == 'nt' else ":"
     cmd = [
         sys.executable,
         "-m", "PyInstaller",
         "--onefile",
         "--noconsole",
-        "--clean",
-        "--noupx",
         "--name", "Dhurandhar",
         "--add-data", f"assets{sep}assets",
-        "--collect-all", "requests",
-        "--collect-all", "cv2",
-        "--collect-all", "numpy",
         "--icon", "NONE",
         "main.py"
     ]
@@ -50,19 +44,8 @@ def build():
     # 1. Copy to release folder
     os.makedirs("release", exist_ok=True)
     import shutil
-    src = "dist/Dhurandhar.exe"
-    dst = "release/Dhurandhar.exe"
-    
-    shutil.copy2(src, dst)
-    
-    # Verification
-    src_size = os.path.getsize(src)
-    dst_size = os.path.getsize(dst)
-    if src_size != dst_size or dst_size < 1000000: # Should be at least ~1MB
-        print(f"ERROR: File copy failed or file is too small! ({dst_size} bytes)")
-        sys.exit(1)
-        
-    print(f"Updated 'release/Dhurandhar.exe' ({dst_size // 1024 // 1024} MB)")
+    shutil.copy2("dist/Dhurandhar.exe", "release/Dhurandhar.exe")
+    print("Updated 'release/Dhurandhar.exe'")
     
     # 2. Update version.json locally
     print(f"Publishing v{version}...")
@@ -70,15 +53,11 @@ def build():
     push = input("\nReady to PUSH update to all clients? (y/n): ").lower()
     if push == 'y':
         try:
-            # Force add the EXE and add everything else
-            subprocess.check_call(["git", "add", "-f", "release/Dhurandhar.exe"])
-            subprocess.check_call(["git", "add", "version.json", "licenses.json"])
-            
+            subprocess.check_call(["git", "add", "."])
             # Check if there are actually changes to commit
             status = subprocess.run(["git", "diff", "--cached", "--quiet"])
             if status.returncode != 0:
                 subprocess.check_call(["git", "commit", "-m", f"Release v{version}"])
-                print("Pushing to GitHub (this may take a minute for 70MB)...")
                 subprocess.check_call(["git", "push"])
                 print("\n" + "*"*40)
                 print("SUCCESS: Update is now LIVE for all users!")
