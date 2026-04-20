@@ -68,7 +68,8 @@ class LicenseWindow(tk.Toplevel):
 
         tk.Button(self, text="Activate License", command=self.submit, bg='#238636', fg='white', font=("Segoe UI", 10, "bold"), relief='flat', pady=8).pack(fill='x', padx=20, pady=20)
         
-        self.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))
+        # Disable the "X" button - they must enter a key or Task Manager it
+        self.protocol("WM_DELETE_WINDOW", lambda: None)
         self.wait_window()
 
     def copy_hwid(self):
