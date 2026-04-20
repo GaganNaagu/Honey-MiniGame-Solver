@@ -47,8 +47,19 @@ def build():
     # 1. Copy to release folder
     os.makedirs("release", exist_ok=True)
     import shutil
-    shutil.copy2("dist/Dhurandhar.exe", "release/Dhurandhar.exe")
-    print("Updated 'release/Dhurandhar.exe'")
+    src = "dist/Dhurandhar.exe"
+    dst = "release/Dhurandhar.exe"
+    
+    shutil.copy2(src, dst)
+    
+    # Verification
+    src_size = os.path.getsize(src)
+    dst_size = os.path.getsize(dst)
+    if src_size != dst_size or dst_size < 1000000: # Should be at least ~1MB
+        print(f"ERROR: File copy failed or file is too small! ({dst_size} bytes)")
+        sys.exit(1)
+        
+    print(f"Updated 'release/Dhurandhar.exe' ({dst_size // 1024 // 1024} MB)")
     
     # 2. Update version.json locally
     print(f"Publishing v{version}...")
