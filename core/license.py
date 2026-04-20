@@ -87,67 +87,68 @@ def check_license(gui_root=None):
     """
     Checks if the application is authorized.
     If no license is found locally, prompts user.
+    Loops until valid license is provided or app is killed.
     """
     hwid = get_hwid()
     config_dir = get_config_dir()
     license_file = os.path.join(config_dir, "license.txt")
 
-    # 1. Load local license key
-    key = ""
-    if os.path.exists(license_file):
-        with open(license_file, 'r') as f:
-            key = f.read().strip()
+    while True:
+        # 1. Load local license key
+        key = ""
+        if os.path.exists(license_file):
+            with open(license_file, 'r') as f:
+                key = f.read().strip()
 
-    # 2. If no key, prompt for one
-    if not key:
-        # Create a temporary root if none exists to host the dialog
-        temp_root = gui_root if gui_root else tk.Tk()
-        if not gui_root: temp_root.withdraw()
-        
-        win = LicenseWindow(temp_root, hwid)
-        key = win.result
-        
+        # 2. If no key, prompt for one
         if not key:
+            # Create a temporary root if none exists to host the dialog
+            temp_root = gui_root if gui_root else tk.Tk()
+            if not gui_root: temp_root.withdraw()
+            
+            win = LicenseWindow(temp_root, hwid)
+            key = win.result
+            
+            if not key:
+                sys.exit(0)
+            
+            with open(license_file, 'w') as f:
+                f.write(key)
+            
+            if not gui_root: temp_root.destroy()
+
+        # 3. Verify against GitHub
+        try:
+            logger.info(f"Verifying license {key} for HWID {hwid}...")
+            response = requests.get(LICENSE_URL, timeout=10)
+            if response.status_code != 200:
+                messagebox.showerror("Error", "Could not connect to license server.")
+                sys.exit(0)
+
+            licenses = response.json()
+            
+            if key not in licenses:
+                messagebox.showerror("Invalid License", "The license key entered is invalid. Please try again.")
+                if os.path.exists(license_file): os.remove(license_file)
+                continue # Try again
+
+            auth_data = licenses[key]
+            expected_hwid = auth_data.get("hwid")
+
+            if expected_hwid and expected_hwid != hwid:
+                messagebox.showerror("Hardware Mismatch", "This license is registered to another computer. Please use a different key.")
+                if os.path.exists(license_file): os.remove(license_file)
+                continue # Try again
+            
+            if auth_data.get("status") != "active":
+                messagebox.showerror("License Expired", "This license is no longer active.")
+                if os.path.exists(license_file): os.remove(license_file)
+                continue # Try again
+
+            logger.info("License verified successfully.")
+            return True
+
+        except Exception as e:
+            logger.error(f"License check failed: {e}")
+            messagebox.showerror("Error", f"License check failed: {e}")
             sys.exit(0)
-        
-        with open(license_file, 'w') as f:
-            f.write(key)
-        
-        if not gui_root: temp_root.destroy()
-
-    # 3. Verify against GitHub
-    try:
-        logger.info(f"Verifying license {key} for HWID {hwid}...")
-        response = requests.get(LICENSE_URL, timeout=10)
-        if response.status_code != 200:
-            messagebox.showerror("Error", "Could not connect to license server.")
-            sys.exit(0)
-
-        licenses = response.json()
-        
-        if key not in licenses:
-            messagebox.showerror("Invalid License", "The license key entered is invalid.")
-            os.remove(license_file) # Clear invalid key
-            sys.exit(0)
-
-        auth_data = licenses[key]
-        expected_hwid = auth_data.get("hwid")
-
-        # If HWID is empty in JSON, this is the first activation - "bind" it
-        # (Note: In a real system you'd need a backend to write this. 
-        # For now, we assume the dev manually puts the HWID in GitHub)
-        if expected_hwid and expected_hwid != hwid:
-            messagebox.showerror("Hardware Mismatch", "This license is registered to another computer.")
-            sys.exit(0)
-        
-        if auth_data.get("status") != "active":
-            messagebox.showerror("License Expired", "This license is no longer active.")
-            sys.exit(0)
-
-        logger.info("License verified successfully.")
-        return True
-
-    except Exception as e:
-        logger.error(f"License check failed: {e}")
-        messagebox.showerror("Error", f"License check failed: {e}")
-        sys.exit(0)
